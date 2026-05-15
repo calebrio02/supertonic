@@ -73,8 +73,13 @@ wav, duration = tts.synthesize(
     total_steps=8,                  # Quality: 5 (low) to 12 (high), default 8 (medium)
     speed=1.05,                     # Speed: 0.7 (slow) to 2.0 (fast)
 )
+# wav: numpy array of shape (1, num_samples,) with dtype=np.float32, sampled at 44100 Hz
+# duration: numpy array of shape (1,) containing the duration of the generated audio in seconds
 
 tts.save_audio(wav, "output.wav")
+# import soundfile as sf
+# sf.write("output.wav", wav.squeeze(), 44100)
+
 print(f"Generated {duration[0]:.2f}s of audio")
 ```
 
