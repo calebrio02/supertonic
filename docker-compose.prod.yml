@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  supertonic:
+    build: .
+    container_name: supertonic-api-prod
+    restart: always
+    # No exponemos puertos hacia la máquina host porque Dokploy se encarga del enrutamiento interno
+    # Dokploy se comunicará con este contenedor de manera interna al puerto 8032
+    volumes:
+      # Monta la carpeta de modelos para que el contenedor tenga acceso a ellos
+      - ./assets:/app/assets
+    environment:
+      - ONNX_DIR=/app/assets/onnx
+      - VOICE_STYLES_DIR=/app/assets/voice_styles
+      - DEFAULT_VOICE=${DEFAULT_VOICE:-M1}
+      - USE_GPU=0
+      - PORT=8032
