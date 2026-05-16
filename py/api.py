@@ -409,7 +409,7 @@ async def create_speech(request: SpeechRequest):
         audio_bytes, media_type = encoder(audio, sample_rate)
         
         return Response(
-            content=audio_bytes,
+            content=bytes(audio_bytes),
             media_type=media_type,
             headers={
                 "Content-Disposition": f'attachment; filename="speech.{fmt}"',
