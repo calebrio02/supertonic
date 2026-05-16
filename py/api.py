@@ -130,7 +130,7 @@ class SpeechRequest(BaseModel):
         description="The voice to use for synthesis.",
     )
     response_format: str = Field(
-        default="wav",
+        default="mp3",
         description="Audio output format: wav, mp3, flac, or pcm.",
     )
     speed: float = Field(
@@ -387,10 +387,40 @@ async def create_speech(request: SpeechRequest):
             detail=f"Failed to load voice style '{request.voice}'.",
         )
 
+    chunks = chunk_text(request.input, max_len=300)
+
+    if len(chunks) == 1:
+        logger.info(
+            "Starting single-chunk synthesis — voice=%s, chars=%d, fmt=%s",
+            request.voice, len(request.input), fmt
+        )
+        wav, duration = await asyncio.to_thread(
+            tts_engine._infer,
+            [chunks[0]],
+            ["na"],
+            style,
+            8,
+            request.speed,
+        )
+        sample_rate = tts_engine.sample_rate
+        audio = wav[0, : int(sample_rate * duration[0].item())]
+        
+        encoder = ENCODERS[fmt]
+        audio_bytes, media_type = encoder(audio, sample_rate)
+        
+        return Response(
+            content=audio_bytes,
+            media_type=media_type,
+            headers={
+                "Content-Disposition": f'attachment; filename="speech.{fmt}"',
+            },
+        )
+
     logger.info(
-        "Starting streaming synthesis — voice=%s, chars=%d, fmt=%s",
+        "Starting streaming synthesis — voice=%s, chars=%d, chunks=%d, fmt=%s",
         request.voice,
         len(request.input),
+        len(chunks),
         fmt,
     )
 
