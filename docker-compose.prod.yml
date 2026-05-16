@@ -2,7 +2,7 @@ services:
   supertonic:
     build: .
     container_name: supertonic-api-prod
-    restart: always
+    restart: unless-stopped
     # No port mapping — Dokploy / reverse proxy handles routing to container port 8032
     volumes:
       - supertonic-models:/app/assets
