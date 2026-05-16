@@ -1,0 +1,44 @@
+# Supertonic Docker build — exclude unnecessary files from context
+
+# Version control
+.git/
+.gitignore
+
+# Documentation
+*.md
+LICENSE
+
+# Test artifacts
+test_*.wav
+test_*.mp3
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Model assets (downloaded at runtime via entrypoint)
+assets/
+
+# Other language implementations (not needed for API)
+nodejs/
+go/
+rust/
+csharp/
+java/
+swift/
+cpp/

@@ -1,22 +1,26 @@
-version: '3.8'
-
 services:
   supertonic:
     build: .
     container_name: supertonic-api
+    restart: unless-stopped
     ports:
-      # Maps the host port to the container port. Configurable via .env file or environment variable.
       - "${HOST_PORT:-8032}:${PORT:-8032}"
     volumes:
-      # Mount the assets directory containing the models (onnx/ and voice_styles/)
-      - ./assets:/app/assets
+      - supertonic-models:/app/assets
     environment:
       - ONNX_DIR=/app/assets/onnx
       - VOICE_STYLES_DIR=/app/assets/voice_styles
       - DEFAULT_VOICE=${DEFAULT_VOICE:-M1}
       - USE_GPU=0
       - PORT=${PORT:-8032}
-    # To enable GPU support later (e.g. NVIDIA), uncomment below:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:${PORT:-8032}/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 120s
+      retries: 3
+    # To enable GPU support (NVIDIA), uncomment below:
     # deploy:
     #   resources:
     #     reservations:
@@ -24,3 +28,7 @@ services:
     #         - driver: nvidia
     #           count: 1
     #           capabilities: [gpu]
+
+volumes:
+  supertonic-models:
+    driver: local

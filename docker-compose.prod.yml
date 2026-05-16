@@ -1,18 +1,34 @@
-version: '3.8'
-
 services:
   supertonic:
     build: .
     container_name: supertonic-api-prod
     restart: always
-    # No exponemos puertos hacia la máquina host porque Dokploy se encarga del enrutamiento interno
-    # Dokploy se comunicará con este contenedor de manera interna al puerto 8032
+    # No port mapping — Dokploy / reverse proxy handles routing to container port 8032
     volumes:
-      # Monta la carpeta de modelos para que el contenedor tenga acceso a ellos
-      - ./assets:/app/assets
+      - supertonic-models:/app/assets
     environment:
       - ONNX_DIR=/app/assets/onnx
       - VOICE_STYLES_DIR=/app/assets/voice_styles
       - DEFAULT_VOICE=${DEFAULT_VOICE:-M1}
       - USE_GPU=0
       - PORT=8032
+      - LOG_LEVEL=WARNING
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8032/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 120s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  supertonic-models:
+    driver: local
