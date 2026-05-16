@@ -16,11 +16,16 @@ RUN groupadd -r supertonic && \
 WORKDIR /app
 
 # Copy requirements first — this layer is cached unless dependencies change
-COPY py/requirements.txt py/requirements-api.txt /app/py/
+COPY py/requirements-api.txt /app/py/
 
-# Install all Python dependencies in a single layer
+# Install only the dependencies actually used by the API.
+# The upstream requirements.txt includes librosa (which pulls scipy,
+# scikit-learn, numba, llvmlite) and PyYAML — none of which are imported
+# by helper.py or api.py. Skipping them saves ~200-400 MB of RAM.
 RUN pip install --no-cache-dir \
-    -r /app/py/requirements.txt \
+    onnxruntime==1.23.1 \
+    "numpy>=1.26.0" \
+    "soundfile>=0.12.1" \
     -r /app/py/requirements-api.txt
 
 # Copy application code (changes more often, placed after deps for caching)
