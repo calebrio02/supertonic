@@ -139,6 +139,10 @@ class SpeechRequest(BaseModel):
         le=4.0,
         description="Speech speed multiplier (0.25–4.0).",
     )
+    language: str = Field(
+        default="na",
+        description="Language token (e.g. 'na', 'ko', 'ja', 'en').",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -234,13 +238,13 @@ async def _audio_stream(
     style,
     speed: float,
     fmt: str,
+    language: str,
 ):
     """Async generator — yields encoded audio bytes chunk-by-chunk.
 
     Each text chunk is synthesised independently and sent immediately,
     dramatically reducing time-to-first-byte for long inputs.
     """
-    lang = "na"
     total_step = 8
     silence_duration = 0.3
     sample_rate = tts_engine.sample_rate
@@ -260,7 +264,7 @@ async def _audio_stream(
         wav, duration = await asyncio.to_thread(
             tts_engine._infer,
             [text_chunk],
-            [lang],
+            [language],
             style,
             total_step,
             speed,
@@ -397,7 +401,7 @@ async def create_speech(request: SpeechRequest):
         wav, duration = await asyncio.to_thread(
             tts_engine._infer,
             [chunks[0]],
-            ["na"],
+            [request.language],
             style,
             8,
             request.speed,
@@ -431,6 +435,7 @@ async def create_speech(request: SpeechRequest):
             style=style,
             speed=request.speed,
             fmt=fmt,
+            language=request.language,
         ),
         media_type=FORMAT_MEDIA_TYPES[fmt],
         headers={
